@@ -1,12 +1,14 @@
-import mongoose, {Schema, Document, Types} from "mongoose";
+import mongoose, {Schema, Document} from "mongoose";
 
 export interface Color extends Document {
     name: string;
+    isActive?: boolean;
 }
 
 const colorSchema = new Schema(
     {
-        name: { type: String, required: true }
+        name: { type: String, required: true },
+        isActive: { type: Boolean, default: true }
     },
     {
         timestamps: true

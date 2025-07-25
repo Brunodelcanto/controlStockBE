@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import Category from "../../models/category";
+import { truncate } from "node:fs/promises";
 
 const createCategory = async (req: Request, res: Response) => {
     try {
@@ -7,6 +8,28 @@ const createCategory = async (req: Request, res: Response) => {
         await category.save();
         res.status(201).json({
             message: "Category created successfully",
+            data: category,
+            error: false,
+        });
+    } catch (error: any) {
+        res.status(400).json({
+            error: error.message
+        })
+    }
+}
+
+const getCategoryById = async (req: Request, res: Response) => {
+    try {
+        const { id } =  req.params;
+        const category = await Category.findById(id);
+        if (!category) {
+            res.status(404).json({
+                message: "Category not found",
+                error: true,
+            });
+        }
+        res.status(200).json({
+            message: "Category fetched successfully",
             data: category,
             error: false,
         });
@@ -32,7 +55,117 @@ const getCategories = async (req: Request, res: Response) => {
     }
 }
 
+const deleteCategory = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const category = await Category.findByIdAndDelete(id);
+        if (!category) {
+            res.status(404).json({
+                message: "Category not found",
+                error: true,
+            });
+            return;
+        } 
+            res.status(200).json({
+                message: "Category deleted successfully",
+                error: false,
+            });
+    } catch (error: any) {
+        res.status(400).json({
+            error: error.message
+        })
+    }
+}
+
+const updateCategory = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const category = await Category.findByIdAndUpdate(
+            id,
+            {
+                $set: req.body
+            },
+            { new: true }
+        );
+        if (!category) {
+            return res.status(404).json({
+                message: "Category not found",
+                error: true,
+            });
+            return;
+        }
+        res.status(200).json({
+            message: "Category updated successfully",
+            data: category,
+            error: false,
+        });
+    } catch (error: any) {
+        res.status(400).json({
+            error: error.message
+        });
+    }
+}
+
+const deactivateCategory = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const category = await Category.findByIdAndUpdate(
+            id,
+            { isActive: false },
+            { new: true },
+        )
+        if (!category) {
+            res.status(404).json({
+                message: "Category not found",
+                error: true,
+            });
+            return
+        }
+        res.status(200).json({
+            message: "Category deactivated successfully",
+            data: category,
+            error: false,  
+        })
+    } catch (error: any) {
+        res.status(400).json({
+            error: error.message
+        });
+    }
+}
+
+const activateCategory = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const category = await Category.findByIdAndUpdate(
+            id,
+            { isActive: true },
+            { new: true },
+        )
+        if (!category) {
+            res.status(404).json({
+                message: "Category not found",
+                error: true,
+            });
+            return
+        }
+        res.status(200).json({
+            message: "Category activated successfully",
+            data: category,
+            error: false,  
+        })
+    } catch (error: any) {
+        res.status(400).json({
+            error: error.message
+        });
+    }
+}
+
 export {
     createCategory,
-    getCategories
+    getCategories,
+    getCategoryById,
+    deleteCategory,
+    updateCategory,
+    deactivateCategory,
+    activateCategory
 }

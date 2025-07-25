@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import Product from "../../models/product";
+import Category from "../../models/category";
 
 const createProduct = async (req: Request, res: Response) => {
     try {
@@ -19,7 +20,7 @@ const createProduct = async (req: Request, res: Response) => {
 
 const getProducts = async (req: Request, res: Response) => {
     try {
-        const products = await Product.find().populate('category').populate('color');
+        const products = await Product.find().populate('category')
         res.status(200).json({
             data: products,
             error: false,
@@ -33,7 +34,7 @@ const getProducts = async (req: Request, res: Response) => {
 
 const getProductById = async (req: Request, res: Response) => { 
     try {
-        const product = await Product.findById(req.params.id).populate('category').populate('color');
+        const product = await Product.findById(req.params.id).populate('category')
         if (!product) {
             return res.status(404).json({
                 message: "Product not found",
@@ -91,7 +92,7 @@ const updateProduct = async (req: Request, res: Response) => {
             return;
         }
         res.status(200).json({
-            message: "User updated successfully",
+            message: "Product updated successfully",
             data: product,
             error: false,
         });
@@ -158,60 +159,63 @@ const activateProduct = async (req: Request, res: Response) => {
 }
 
 const adjustProductStock = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;             
+    const { colorId, amount, action } = req.body; 
+
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found", error: true });
+    }
+
+    const variant = product.variants.find(v => v.color.toString() === colorId);
+    if (!variant) {
+      return res.status(404).json({ message: "Color not found in product", error: true });
+    }
+
+    if (action === "decrease") {
+      if (variant.amount < amount) {
+        return res.status(400).json({ message: "Not enough stock", error: true });
+      }
+      variant.amount -= amount;
+    } else if (action === "increase") {
+      variant.amount += amount;
+    } else {
+      return res.status(400).json({ message: "Invalid action", error: true });
+    }
+
+    await product.save();
+    res.status(200).json({ message: "Stock updated", data: product });
+  } catch (error: any) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+const getProductByCategory = async (req: Request, res: Response) => {
+    const { id } = req.params;
     try {
-        const { id } = req.params;
-        const { amount, action } = req.body;
+        const category = await Category.findById(id)
 
-        const parsedAmount = Number(amount);
-        if (isNaN(parsedAmount) || parsedAmount <= 0) {
-            return res.status(400).json({
-                message: "Amount must be a positive number",
+        if (!category) {
+            res.status(404).json({
+                message: "Category not found",
                 error: true,
             });
+            return;
         }
-
-        if (!["increase", "decrease"].includes(action)) {
-            return res.status(400).json({
-                message: "Invalid action. Must be 'increase' or 'decrease'",
-                error: true,
-            });
-        }
-
-        const product = await Product.findById(id);
-        if (!product) {
-            return res.status(404).json({
-                message: "Product not found",
-                error: true,
-            });
-        }
-
-        if (action === "decrease") {
-            if (product.amount < parsedAmount) {
-                return res.status(400).json({
-                    message: "Not enough stock to decrease",
-                    error: true,
-                });
-            }
-            product.amount -= parsedAmount;
-        } else {
-            product.amount += parsedAmount;
-        }
-
-        await product.save();
-
+        const products = await Product.find({ category: id }).populate('color').populate('category');
         res.status(200).json({
-            message: `Product amount ${action}d successfully`,
-            data: product,
+            message: "Products obtained successfully",
+            data: products,
             error: false,
         });
-
     } catch (error: any) {
-        res.status(500).json({
+        res.status(400).json({
             message: "Server error",
             error: error.message,
         });
     }
-};
+}
 
 
 export {
@@ -222,5 +226,6 @@ export {
     deleteProduct,
     deactivateProduct,
     activateProduct,
-    adjustProductStock
+    adjustProductStock,
+    getProductByCategory
 }
