@@ -217,6 +217,31 @@ const getProductByCategory = async (req: Request, res: Response) => {
     }
 }
 
+const searchProductsByName = async (req: Request, res: Response) => {
+    const { name } = req.query;
+    if (!name || typeof name !== 'string') {
+        return res.status(400).json({
+            error: true,
+            message: "Invalid or missing 'name' query parameter"
+        })
+    }
+
+    try {
+        const products = await Product.find({
+            name: { $regex: name, $options: "i"}
+        });
+        res.status(200).json({
+            message: "Products obtained successfully",
+            data: products,
+            error: false,
+        });
+    } catch (error: any) {
+        res.status(400).json({
+            error: error.message,
+        });
+    }
+}
+
 
 export {
     getProducts,
@@ -227,5 +252,6 @@ export {
     deactivateProduct,
     activateProduct,
     adjustProductStock,
-    getProductByCategory
+    getProductByCategory,
+    searchProductsByName
 }
