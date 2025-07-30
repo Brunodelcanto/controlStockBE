@@ -7,7 +7,7 @@ router.post('/', createColor);
 router.get('/', getColors);
 router.get('/:id', getColorById);
 router.delete('/:id', deleteColor);
-router.put('/:id', updateColor);
+router.patch('/:id', updateColor);
 router.patch('/:id/deactivate', deactivateColor);
 router.patch('/:id/activate', activateColor);
 

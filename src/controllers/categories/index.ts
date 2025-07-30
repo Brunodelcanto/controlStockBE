@@ -79,7 +79,22 @@ const deleteCategory = async (req: Request, res: Response) => {
 
 const updateCategory = async (req: Request, res: Response) => {
     try {
+        const { name } = req.body;
         const { id } = req.params;
+
+        const existingCategory = await Category.findOne({
+            name: { $regex: new RegExp(`^${name}$`, "i") },
+            _id: { $ne: id }
+        });
+
+        if (existingCategory) {
+            res.status(400).json({
+                message: "Category with this name already exists",
+                error: true,
+            });
+            return;
+        }
+
         const category = await Category.findByIdAndUpdate(
             id,
             {
@@ -88,7 +103,7 @@ const updateCategory = async (req: Request, res: Response) => {
             { new: true }
         );
         if (!category) {
-            return res.status(404).json({
+            res.status(404).json({
                 message: "Category not found",
                 error: true,
             });

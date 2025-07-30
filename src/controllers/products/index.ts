@@ -4,6 +4,29 @@ import Category from "../../models/category";
 
 const createProduct = async (req: Request, res: Response) => {
     try {
+        const { name, variants } = req.body;
+
+        const existingProduct = await Product.findOne({
+            name: { $regex: new RegExp(`^${name}$`, 'i') } 
+        });
+
+        if (existingProduct) {
+            return res.status(400).json({
+                message: "Product with this name already exists",
+                error: true,
+            });
+        }
+
+        const colorIds = variants.map((v: any) => v.color.toString());
+        const duplicateColors = new Set(colorIds).size !== colorIds.length;
+
+        if (duplicateColors) {
+            return res.status(400).json({
+                message: "Duplicate color variants are not allowed",
+                error: true,
+            });
+        }
+
         const product = new Product(req.body);
         await product.save();
         res.status(201).json({

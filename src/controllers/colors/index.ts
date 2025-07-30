@@ -3,6 +3,19 @@ import Color from "../../models/color";
 
 const createColor = async (req: Request, res: Response) => {
     try {
+        const {name} = req.body;
+
+        const existingColor = await Color.findOne({
+            name: { $regex: new RegExp(`^${name}$`, 'i') }
+        });
+
+        if (existingColor) {
+            return res.status(400).json({
+                message: "Color with this name already exists",
+                error: true,
+            });
+        }
+
         const color = new Color(req.body);
         await color.save();
         res.status(201).json({
@@ -79,7 +92,21 @@ const deleteColor = async (req: Request, res: Response) => {
 
 const updateColor = async (req: Request , res: Response) => {
     try {
-        const { id } = req.params;
+        const { name } = req.body;
+         const { id } = req.params;
+
+        const existingColor = await Color.findOne({
+            name: { $regex: new RegExp(`^${name}$`, 'i') },
+            _id: { $ne: id }
+        });
+
+        if (existingColor) {
+            res.status(400).json({
+                message: "Color with this name already exists",
+                error: true,
+            });
+            return;
+        }
         const color = await Color.findByIdAndUpdate(
             id,
             {
