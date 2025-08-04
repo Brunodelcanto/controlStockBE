@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import Color from "../../models/color";
+import Product from "../../models/product";
 
 const createColor = async (req: Request, res: Response) => {
     try {
@@ -70,6 +71,15 @@ const getColorById = async (req: Request, res: Response) => {
 const deleteColor = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
+
+        const productsWithColor = await Product.find({ "variants.color": id });
+
+        if (productsWithColor.length > 0) {
+            return res.status(400).json({
+                message: "Cannot delete this color because it is associated with products",
+                error: true,
+            });
+        }
         const color = await Color.findByIdAndDelete(id);
         if (!color) {
             res.status(404).json({
@@ -136,6 +146,16 @@ const updateColor = async (req: Request , res: Response) => {
 const deactivateColor = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
+
+        const productsWithColor = await Product.find({ "variants.color": id });
+
+        if (productsWithColor.length > 0) {
+            return res.status(400).json({
+                message: "Cannot deactivate this color because it is associated with products",
+                error: true,
+            });
+        }
+
         const color = await Color.findByIdAndUpdate(
             id,
             { isActive: false },

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import Category from "../../models/category";
-import { truncate } from "node:fs/promises";
+import Product from "../../models/product";
 
 const createCategory = async (req: Request, res: Response) => {
     try {
@@ -58,6 +58,15 @@ const getCategories = async (req: Request, res: Response) => {
 const deleteCategory = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
+        const productsWithCategory = await Product.find({ category: id });
+
+        if (productsWithCategory.length > 0) {
+            return res.status(400).json({
+                message: "Cannot delete this category because it is associated with products",
+                error: true,
+            })
+        }
+
         const category = await Category.findByIdAndDelete(id);
         if (!category) {
             res.status(404).json({
@@ -124,6 +133,15 @@ const updateCategory = async (req: Request, res: Response) => {
 const deactivateCategory = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
+
+        const productsWithCategory = await Product.find({ category: id });
+
+        if (productsWithCategory.length > 0) {
+            return res.status(400).json({
+                message: "Cannot deactivate this category because it is associated with products",
+                error: true,
+            })
+        }
         const category = await Category.findByIdAndUpdate(
             id,
             { isActive: false },
