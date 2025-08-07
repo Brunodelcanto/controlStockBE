@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document, Types } from "mongoose";
 
 interface ColorVariant {
-    color: mongoose.Types.ObjectId;
+    color: Types.ObjectId;
     amount: number;
     colorName?: string
 }

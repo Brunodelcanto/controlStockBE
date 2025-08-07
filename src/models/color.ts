@@ -7,7 +7,7 @@ export interface Color extends Document {
 
 const colorSchema = new Schema(
     {
-        name: { type: String, required: true },
+        name: { type: String, unique: true, required: true },
         isActive: { type: Boolean, default: true }
     },
     {

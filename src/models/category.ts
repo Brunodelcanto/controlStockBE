@@ -7,7 +7,7 @@ export interface Category extends Document {
 
 const CategorySchema: Schema = new Schema(
     {
-        name: {type: String},
+        name: {type: String, unique: true, required: true},
         isActive: { type: Boolean, default: true },
     },
     {

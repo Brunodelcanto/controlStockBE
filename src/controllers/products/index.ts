@@ -226,7 +226,7 @@ const getProductByCategory = async (req: Request, res: Response) => {
             });
             return;
         }
-        const products = await Product.find({ category: id }).populate('color').populate('category');
+        const products = await Product.find({ category: id }).populate('variants.color').populate('category');
         res.status(200).json({
             message: "Products obtained successfully",
             data: products,
