@@ -9,7 +9,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors({
-    origin: process.env.FRONTEND_URL || ['http://localhost:5173', 'http://localhost:3000'],
+    origin: process.env.FRONTEND_URL || ['http://localhost:5173', 'https://control-de-stock-cheelmate-9np7.onrender.com'],
     credentials: true
 }));
 app.use(express.json());
