@@ -8,7 +8,11 @@ const app = express();
 
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+// CORS configurado para producción
+app.use(cors({
+    origin: process.env.FRONTEND_URL || ['http://localhost:5173', 'http://localhost:3000'],
+    credentials: true
+}));
 app.use(express.json());
 
 connectDB();
